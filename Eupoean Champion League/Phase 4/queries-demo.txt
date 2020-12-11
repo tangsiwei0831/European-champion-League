@@ -1,0 +1,181 @@
+csc343h-wangz585=> \i schema.ddl 
+# Import the schema and the data
+psql:schema.ddl:1: NOTICE:  drop cascades to 15 other objects
+DETAIL:  drop cascades to table soccer.country
+drop cascades to table soccer.team
+drop cascades to type soccer.season
+drop cascades to type soccer.stage
+drop cascades to table soccer.champions_league_team
+drop cascades to table soccer.europa_league_team
+drop cascades to table soccer.champions_league_match
+drop cascades to table soccer.europa_league_match
+drop cascades to table soccer.premier_league
+drop cascades to table soccer.la_liga
+drop cascades to table soccer.serie_a
+drop cascades to table soccer.bundesliga
+drop cascades to table soccer.ligue_1
+drop cascades to table soccer.national_team_coefficient
+drop cascades to table soccer.country_coefficient
+DROP SCHEMA
+CREATE SCHEMA
+SET
+CREATE TABLE
+CREATE TABLE
+CREATE DOMAIN
+CREATE DOMAIN
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+COPY 5
+COPY 164
+COPY 200
+COPY 200
+COPY 200
+COPY 180
+COPY 180
+COPY 166
+COPY 199
+COPY 427
+COPY 180
+# Question 1: Find win rate of clubs in different countries at the Champions League
+csc343h-wangz585=> SELECT Country.name AS country, 
+csc343h-wangz585-> SUM(Champions_league_team.win)::float / SUM(Champions_league_team.matches_played) AS win_rate
+csc343h-wangz585-> FROM Champions_league_team, Team, Country
+csc343h-wangz585-> WHERE Champions_league_team.team = Team.tID AND Country.cID = Team.cID
+csc343h-wangz585-> GROUP BY Country.name
+csc343h-wangz585-> ORDER BY win_rate;
+ country |     win_rate      
+---------+-------------------
+ france  |  0.38860103626943
+ italy   | 0.418326693227092
+ germany | 0.505988023952096
+ england | 0.507978723404255
+ spain   | 0.553921568627451
+(5 rows)
+
+# Question 1: Find win rate of clubs in different countries at the Europa League
+csc343h-wangz585=> SELECT Country.name AS country, 
+csc343h-wangz585-> SUM(Europa_league_team.win)::float / SUM(Europa_league_team.matches_played) AS win_rate
+csc343h-wangz585-> FROM Europa_league_team, Team, Country
+csc343h-wangz585-> WHERE Europa_league_team.team = Team.tID AND Country.cID = Team.cID
+csc343h-wangz585-> GROUP BY Country.name
+csc343h-wangz585-> ORDER BY win_rate;
+ country |     win_rate      
+---------+-------------------
+ france  | 0.405063291139241
+ italy   | 0.467289719626168
+ germany | 0.472324723247232
+ england | 0.546075085324232
+ spain   | 0.575221238938053
+(5 rows)
+
+# Question 2: Merge results of five leagues into one table
+csc343h-wangz585=> DROP VIEW IF EXISTS five_leagues CASCADE;
+NOTICE:  view "five_leagues" does not exist, skipping
+DROP VIEW
+csc343h-wangz585=> CREATE VIEW five_leagues AS
+csc343h-wangz585-> SELECT * FROM La_liga 
+csc343h-wangz585-> UNION 
+csc343h-wangz585-> SELECT * FROM Ligue_1 
+csc343h-wangz585-> UNION 
+csc343h-wangz585-> SELECT * FROM Premier_league 
+csc343h-wangz585-> UNION 
+csc343h-wangz585-> SELECT * FROM Bundesliga 
+csc343h-wangz585-> UNION 
+csc343h-wangz585-> SELECT * FROM Serie_a; 
+CREATE VIEW
+
+# Question 2: Find top class teams
+csc343h-wangz585=> DROP VIEW IF EXISTS champions_team_information CASCADE;
+NOTICE:  view "champions_team_information" does not exist, skipping
+DROP VIEW
+csc343h-wangz585=> CREATE VIEW champions_team_information AS
+csc343h-wangz585-> SELECT AVG(champions_team.country)::INTEGER AS country, team.name, 
+csc343h-wangz585-> AVG(champions_team.win_rate) AS champions_league_win_rate, AVG(rank) AS average_league_rank 
+csc343h-wangz585-> FROM champions_team, five_leagues, team
+csc343h-wangz585-> WHERE champions_team.team = five_leagues.team AND champions_team.team = team.tID
+csc343h-wangz585-> GROUP BY team.name;
+
+
+# Question 2: Find the required information
+csc343h-wangz585=> DROP VIEW IF EXISTS champions_team_information CASCADE;
+NOTICE:  view "champions_team_information" does not exist, skipping
+DROP VIEW
+csc343h-wangz585=> CREATE VIEW champions_team_information AS
+csc343h-wangz585-> SELECT AVG(champions_team.country)::INTEGER AS country, team.name, 
+csc343h-wangz585-> AVG(champions_team.win_rate) AS champions_league_win_rate, AVG(rank) AS average_league_rank 
+csc343h-wangz585-> FROM champions_team, five_leagues, team
+csc343h-wangz585-> WHERE champions_team.team = five_leagues.team AND champions_team.team = team.tID
+csc343h-wangz585-> GROUP BY team.name;
+CREATE VIEW
+csc343h-wangz585=> SELECT * FROM champions_team_information WHERE name = 'Real Madrid';
+ country |    name     | champions_league_win_rate | average_league_rank 
+---------+-------------+---------------------------+---------------------
+       4 | Real Madrid |         0.672413793103448 |  2.0000000000000000
+
+# Question3: Find winning team of a match
+csc343h-wangz585=> DROP VIEW IF EXISTS matches CASCADE;
+NOTICE:  view "matches" does not exist, skipping
+DROP VIEW
+csc343h-wangz585=> CREATE VIEW matches AS
+csc343h-wangz585-> SELECT home, away, home_goals, away_goals, home.cID AS home_country, away.cID AS away_country,
+csc343h-wangz585-> (CASE
+csc343h-wangz585(>     WHEN home_goals = away_goals THEN 'draw'
+csc343h-wangz585(>     WHEN home_goals > away_goals THEN 'home'
+csc343h-wangz585(>     ELSE 'away'
+csc343h-wangz585(> END) AS win 
+csc343h-wangz585-> FROM Champions_league_match, Team As home, Team AS away
+csc343h-wangz585-> WHERE Champions_league_match.home = home.tID AND Champions_league_match.away = away.tID;
+CREATE VIEW
+
+# Question3: Group matches by countries
+csc343h-wangz585=> DROP VIEW IF EXISTS grouped_matches CASCADE;
+NOTICE:  view "grouped_matches" does not exist, skipping
+DROP VIEW
+csc343h-wangz585=> CREATE VIEW grouped_matches AS
+csc343h-wangz585-> SELECT home.name AS home_nation, away.name AS away_nation, COUNT(*) AS number_of_matches,
+csc343h-wangz585-> SUM(CASE 
+csc343h-wangz585(>         WHEN matches.win = 'home' THEN 1
+csc343h-wangz585(>         ELSE 0
+csc343h-wangz585(>         END) AS home_win_count,
+csc343h-wangz585-> SUM(CASE 
+csc343h-wangz585(>         WHEN matches.win = 'away' THEN 1
+csc343h-wangz585(>         ELSE 0
+csc343h-wangz585(>         END) AS away_win_count,
+csc343h-wangz585-> SUM(CASE 
+csc343h-wangz585(>         WHEN matches.win = 'draw' THEN 1
+csc343h-wangz585(>         ELSE 0
+csc343h-wangz585(>         END) AS draw_count   
+csc343h-wangz585-> FROM matches, country home, country away
+csc343h-wangz585-> WHERE matches.home_country = home.cID AND matches.away_country = away.cID
+csc343h-wangz585-> GROUP BY home.name, away.name;
+CREATE VIEW
+
+# Question3: Find winning rate of groups of matches
+csc343h-wangz585=> DROP VIEW IF EXISTS grouped_matches_rate CASCADE;
+NOTICE:  view "grouped_matches_rate" does not exist, skipping
+DROP VIEW
+csc343h-wangz585=> CREATE VIEW grouped_matches_rate AS
+csc343h-wangz585-> SELECT home_nation, away_nation, 
+csc343h-wangz585-> home_win_count::FLOAT / number_of_matches AS home_win_rate,  
+csc343h-wangz585-> away_win_count::FLOAT / number_of_matches AS away_win_rate, 
+csc343h-wangz585-> draw_count::FLOAT / number_of_matches AS draw_rate
+csc343h-wangz585-> FROM grouped_matches;
+CREATE VIEW
+csc343h-wangz585=> SELECT * FROM grouped_matches_rate WHERE home_nation = 'england';
+ home_nation | away_nation |   home_win_rate   |   away_win_rate   |     draw_rate     
+-------------+-------------+-------------------+-------------------+-------------------
+ england     | england     | 0.571428571428571 | 0.428571428571429 |                 0
+ england     | france      |               0.5 |            0.3125 |            0.1875
+ england     | germany     | 0.620689655172414 | 0.241379310344828 | 0.137931034482759
+ england     | italy       | 0.529411764705882 | 0.176470588235294 | 0.294117647058824
+ england     | spain       | 0.357142857142857 | 0.357142857142857 | 0.285714285714286
+(5 rows)

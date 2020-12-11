@@ -1,0 +1,45 @@
+psql (10.14 (Ubuntu 10.14-0ubuntu0.18.04.1))
+Type "help" for help.
+
+csc343h-wangz585=> \q
+dbsrv1:~$ cd csc343db/project/
+dbsrv1:~/csc343db/project$ psql csc343h-wangz585
+psql (10.14 (Ubuntu 10.14-0ubuntu0.18.04.1))
+Type "help" for help.
+
+csc343h-wangz585=> \i soccer.ddl
+psql:soccer.ddl:1: NOTICE:  drop cascades to 15 other objects
+DETAIL:  drop cascades to table soccer.country
+drop cascades to table soccer.team
+drop cascades to type soccer.season
+drop cascades to type soccer.stage
+drop cascades to table soccer.championleague
+drop cascades to table soccer.europaleague
+drop cascades to table soccer.championleaguematch
+drop cascades to table soccer.europaleaguematch
+drop cascades to table soccer.premierleague
+drop cascades to table soccer.laliga
+drop cascades to table soccer.seriea
+drop cascades to table soccer.bundesliga
+drop cascades to table soccer.ligue1
+drop cascades to table soccer.nationalteamcoefficient
+drop cascades to table soccer.countrycoefficient
+DROP SCHEMA
+CREATE SCHEMA
+SET
+CREATE TABLE
+CREATE TABLE
+CREATE DOMAIN
+CREATE DOMAIN
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+csc343h-wangz585=>
